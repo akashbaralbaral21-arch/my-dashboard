@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 2 — Numbers, Math & the input() Trap</title>
+<style>
+:root{
+  --bg:#0a0e1a;--card:#111827;--card2:#1a2233;--border:#2a3650;
+  --text:#e6edf7;--dim:#9aa7bd;--faint:#6b7891;
+  --green:#00d9a3;--blue:#5aa9ff;--gold:#ffc857;--red:#ff6b6b;
+  --purple:#b794f6;--orange:#ff9e5a;--teal:#70e0c4;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.65}
+code{background:var(--card2);padding:2px 6px;border-radius:4px;font-family:Consolas,monospace;color:var(--gold);font-size:13px}
+pre.code{background:#0d1117;border:1px solid var(--border);border-left:3px solid var(--green);padding:12px;border-radius:6px;overflow-x:auto;margin:8px 0;font-family:Consolas,monospace;font-size:13px;line-height:1.7;color:var(--text);white-space:pre}
+button{font-family:inherit;cursor:pointer}
+
+header{text-align:center;padding:26px 16px 20px;border-bottom:2px solid var(--border)}
+.badge{display:inline-block;background:var(--green);color:#000;font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;letter-spacing:2px;margin-bottom:10px}
+.prev{display:inline-block;background:var(--card2);border:1px solid var(--border);color:var(--teal);font-size:11px;padding:4px 12px;border-radius:20px;margin-left:8px}
+h1{font-size:30px;background:linear-gradient(90deg,var(--green),var(--blue));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px}
+.sub{color:var(--dim);font-size:14px}
+
+.wrap{display:grid;grid-template-columns:minmax(0,1fr) 470px;gap:20px;max-width:1280px;margin:0 auto;padding:20px}
+@media(max-width:1000px){.wrap{grid-template-columns:1fr}.shellcol{position:static !important;max-height:none !important}}
+
+.lesson section{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px}
+.lesson h2{font-size:17px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.lesson h3{font-size:14px;color:var(--blue);margin:12px 0 6px}
+.lesson p,.lesson li{color:var(--dim);font-size:14px;margin-bottom:6px}
+.lesson strong{color:var(--text)}
+.lesson ul,.lesson ol{padding-left:20px}
+.def{background:var(--card2);border-left:3px solid var(--gold);padding:10px 14px;margin:8px 0;border-radius:4px;font-size:13px;color:var(--dim)}
+.def b{color:var(--gold);margin-right:6px}
+.step{background:var(--card2);border:1px solid var(--border);padding:10px 14px;border-radius:6px;margin:8px 0;font-size:13px;color:var(--dim)}
+.step b{color:var(--green)}
+.warn{background:rgba(255,107,107,.06);border-left:3px solid var(--red);padding:10px 14px;margin:8px 0;border-radius:4px;font-size:13px;color:var(--dim)}
+.warn b{color:var(--red)}
+.ignore{background:rgba(255,158,90,.06);border:1px dashed var(--orange);padding:12px;border-radius:6px}
+.ignore ul{list-style:none;padding-left:0}
+.ignore li::before{content:'✕ ';color:var(--orange);font-weight:700}
+.output{background:#1e1e1e;color:#d4d4d4;padding:10px;border-radius:6px;font-family:Consolas,monospace;font-size:12px;margin:6px 0;border:1px solid #333;white-space:pre-wrap}
+.output::before{content:'▶ output';display:block;font-size:10px;color:var(--faint);letter-spacing:1px;margin-bottom:4px;font-family:'Segoe UI',sans-serif}
+.chip{background:var(--card2);border:1px solid var(--green);color:var(--green);padding:3px 10px;border-radius:14px;font-size:11px;font-weight:600;margin:4px 0}
+.chip:hover{background:var(--green);color:#000}
+.optional{border:1px dashed var(--purple);border-radius:8px;padding:12px;margin-top:10px}
+.optional h3{color:var(--purple);margin-top:0}
+details{background:var(--card2);border:1px solid var(--teal);border-radius:6px;padding:10px 14px;margin:8px 0}
+summary{cursor:pointer;color:var(--teal);font-size:13px;font-weight:600}
+details p{margin-top:8px;color:var(--dim);font-size:13px}
+.stop{background:rgba(90,169,255,.08);border-left:3px solid var(--blue);padding:14px;border-radius:6px;font-size:14px;color:var(--dim)}
+.stop strong{color:var(--blue)}
+
+.shellcol{position:sticky;top:12px;align-self:start;max-height:calc(100vh - 24px);display:flex;flex-direction:column}
+.shell{background:var(--card);border:1px solid var(--border);border-radius:10px;display:flex;flex-direction:column;overflow:hidden;flex:1;min-height:0}
+.shell-top{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--card2)}
+.shell-top h2{font-size:14px;color:var(--green)}
+.pill{font-size:10px;padding:3px 10px;border-radius:12px;background:var(--card);border:1px solid var(--border);color:var(--faint)}
+.pill.ready{border-color:var(--green);color:var(--green)}
+.pill.err{border-color:var(--red);color:var(--red)}
+.tabs{display:flex;border-bottom:1px solid var(--border)}
+.tab{flex:1;background:none;border:none;color:var(--faint);padding:8px;font-size:12px;font-weight:600}
+.tab.active{color:var(--text);background:var(--card2);box-shadow:inset 0 -2px 0 var(--green)}
+.panel{display:none;flex-direction:column;flex:1;min-height:0;padding:12px;gap:8px}
+.panel.active{display:flex}
+.lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--faint)}
+#editor,#stdinBox{width:100%;background:#0d1117;border:1px solid var(--border);border-radius:6px;color:var(--text);padding:10px;font-family:Consolas,monospace;font-size:13px;line-height:1.6;resize:vertical}
+#editor{flex:1;min-height:150px}
+#stdinBox{min-height:44px;max-height:80px}
+#editor:focus,#stdinBox:focus{outline:none;border-color:var(--green)}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap}
+.run{background:var(--green);border:none;color:#000;padding:8px 18px;border-radius:6px;font-weight:700;font-size:13px}
+.run:hover{opacity:.85}
+.ghost{background:none;border:1px solid var(--border);color:var(--dim);padding:8px 12px;border-radius:6px;font-size:12px}
+.ghost:hover{border-color:var(--blue);color:var(--text)}
+.console{background:#0d1117;border:1px solid var(--border);border-radius:6px;padding:10px;font-family:Consolas,monospace;font-size:12.5px;line-height:1.6;color:#d4d4d4;overflow:auto;flex:1;min-height:120px;max-height:260px;white-space:pre-wrap}
+.console .e{color:var(--red)}
+.console .h{color:var(--gold)}
+.replline{display:flex;gap:6px;align-items:center}
+.replline span{color:var(--green);font-family:Consolas,monospace;font-size:13px}
+#replInput{flex:1;background:#0d1117;border:1px solid var(--border);border-radius:6px;color:var(--text);padding:8px 10px;font-family:Consolas,monospace;font-size:13px}
+#replInput:focus{outline:none;border-color:var(--green)}
+.jump{position:fixed;right:16px;bottom:16px;background:var(--green);color:#000;border:none;padding:10px 16px;border-radius:24px;font-weight:700;font-size:13px;box-shadow:0 4px 14px rgba(0,0,0,.5);z-index:50}
+@media(min-width:1001px){.jump{display:none}}
+footer{text-align:center;color:var(--faint);font-size:12px;padding:24px;border-top:1px solid var(--border)}
+</style>
+</head>
+<body>
+
+<header>
+  <span class="badge">DAY 2 OF 100</span><span class="prev">Day 1 ✓ complete</span>
+  <h1>Numbers, Math & the input() Trap</h1>
+  <p class="sub">Two kinds of numbers, four operators, and why your calculator just printed "23"</p>
+</header>
+
+<div class="wrap">
+
+<!-- ============ LESSON ============ -->
+<div class="lesson">
+
+  <section>
+    <h2>🎯 Today's only goal</h2>
+    <p>Build a <strong>tip calculator</strong>: it asks for a bill amount and a tip percentage, then prints the tip and the total. To do that you need exactly three new ideas:</p>
+    <ul>
+      <li><strong>Numbers</strong> — the two kinds Python has (int and float)</li>
+      <li><strong>Math operators</strong> — <code>+ - * /</code> and parentheses</li>
+      <li><strong>Conversion</strong> — turning the text from <code>input()</code> into real numbers</li>
+    </ul>
+    <p>Same rule as Day 1: every snippet has a <strong>Load ▶</strong> button. Run it, predict it, break it, fix it.</p>
+  </section>
+
+  <section>
+    <h2>🔍 Key words first</h2>
+    <div class="def"><b>int</b> A whole number: <code>5</code>, <code>-3</code>, <code>0</code>. No decimal point, no quotes.</div>
+    <div class="def"><b>float</b> A number with a decimal: <code>2.5</code>, <code>-0.75</code>. Note: <code>3.0</code> is a float too — the <code>.0</code> makes it one.</div>
+    <div class="def"><b>Operators</b> <code>+</code> add, <code>-</code> subtract, <code>*</code> multiply, <code>/</code> divide. Parentheses <code>( )</code> control order, exactly like school math. One surprise: <code>/</code> <em>always</em> gives a float — <code>10 / 5</code> prints <code>2.0</code>, not <code>2</code>.</div>
+    <div class="def"><b>Conversion</b> <code>int("42")</code> → the number 42. <code>float("4.2")</code> → the number 4.2. <code>str(5)</code> → the text "5". This is the bridge between Day 1 and today, because <strong>input() always returns text</strong>, even when the human types a number.</div>
+  </section>
+
+  <section>
+    <h2>💡 Smallest working example</h2>
+    <button class="chip" data-load="ex">Load ▶ into shell</button>
+<pre class="code">price = 10
+quantity = 3
+total = price * quantity
+print("Total:", total)</pre>
+    <div class="step"><b>Lines 1–2:</b> two boxes holding ints. No quotes — quotes would make them text, and text cannot multiply.</div>
+    <div class="step"><b>Line 3:</b> Python reads the boxes, multiplies 10 × 3, stores 30 in a new box called <code>total</code>.</div>
+    <div class="step"><b>Line 4:</b> the comma in print joins things with a space: <code>Total: 30</code></div>
+  </section>
+
+  <section>
+    <h2>✋ Practice rounds</h2>
+
+    <h3>Round 1 — order of operations</h3>
+    <button class="chip" data-load="t1">Load ▶ into shell</button>
+<pre class="code">print(2 + 3 * 4)
+print((2 + 3) * 4)</pre>
+    <p><strong>Predict both answers before Run.</strong> Python follows school math: multiply before add, parentheses first.</p>
+
+    <h3>Round 2 — the division surprise</h3>
+    <button class="chip" data-load="t2">Load ▶ into shell</button>
+<pre class="code">print(7 / 2)
+print(10 / 5)</pre>
+    <p>Second line prints <code>2.0</code>, not <code>2</code>. Division always returns a float. Know this, expect this.</p>
+
+    <h3>Round 3 — THE TRAP (the most important round today)</h3>
+    <button class="chip" data-load="t3">Load ▶ into shell</button>
+<pre class="code">a = input("First number: ")
+b = input("Second number: ")
+print(a + b)</pre>
+    <p>Put <code>2</code> and <code>3</code> in the INPUT box (one per line). Run it. You asked for 2 + 3… and got <code>23</code>.</p>
+    <p><strong>Why:</strong> <code>input()</code> returns <em>text</em>. <code>"2" + "3"</code> glues text together — that is what <code>+</code> means for strings. Your program never did math at all.</p>
+
+    <h3>Round 4 — fix the trap with conversion</h3>
+    <button class="chip" data-load="t4">Load ▶ into shell</button>
+<pre class="code">a = float(input("First number: "))
+b = float(input("Second number: "))
+print(a + b)</pre>
+    <p>Read it from the inside out: <code>input()</code> gets text → <code>float(...)</code> turns it into a number → the box stores the number. Now <code>+</code> does real math: <code>5.0</code>.</p>
+    <p>Why <code>float</code> and not <code>int</code>? Because a human might type <code>2.5</code>. <code>int("2.5")</code> crashes; <code>float("2")</code> works fine. When in doubt about numbers from humans, use <code>float()</code>.</p>
+
+    <div class="optional">
+      <h3>Optional 2-minute exploration: // and %</h3>
+      <button class="chip" data-load="t5">Load ▶ into shell</button>
+<pre class="code">print(7 // 2)
+print(7 % 2)</pre>
+      <p><code>//</code> divides and throws away the decimal (floor division). <code>%</code> gives the remainder. That's all — you'll need them later for loops. Play for 2 minutes, then move on.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>🔨 Today's task (the gate for Day 2)</h2>
+    <button class="chip" data-load="task">Load ▶ starter code</button>
+    <p>Finish the tip calculator: ask for the bill and the tip percent, then print the tip amount and the total. Put two numbers in the INPUT box (e.g. <code>50</code> and <code>10</code>).</p>
+    <div class="output">Bill amount: 50
+Tip percent: 10
+Tip: 5.0
+Total: 55.0</div>
+    <p>When yours matches this shape, <strong>Day 2 is finished</strong>.</p>
+  </section>
+
+  <section>
+    <h2>⚠️ The only 3 mistakes that bite today</h2>
+    <div class="warn"><b>1. Doing math on raw input():</b> <code>a = input()</code> then <code>a + 1</code> crashes with TypeError — text plus number is not allowed. Wrap it: <code>float(input(...))</code>.</div>
+    <div class="warn"><b>2. int() on decimal text:</b> <code>int("2.5")</code> crashes with ValueError. If the text might contain a dot, use <code>float()</code>.</div>
+    <div class="warn"><b>3. Gluing numbers with + inside print:</b> <code>print("Total: " + total)</code> crashes when total is a number. Use a comma: <code>print("Total:", total)</code> — or convert with <code>str(total)</code>.</div>
+    <p style="margin-top:10px"><strong>Deliberately trigger mistake #1 in the shell</strong> and read the red TypeError. Recognizing it in 2 seconds later will save you hours.</p>
+  </section>
+
+  <section>
+    <h2>🚫 Do NOT learn today</h2>
+    <div class="ignore">
+      <ul>
+        <li>if statements and comparisons (&gt;, &lt;, ==) — that's Day 3</li>
+        <li>Loops (for / while)</li>
+        <li>Functions (def)</li>
+        <li>f-strings (formatted text) — commas in print are enough for now</li>
+        <li>round() — yes, your tip may show ugly decimals like 6.565500000001. That is normal. round() arrives soon; ignore it today</li>
+        <li>Boolean True/False</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2>✅ Check your understanding</h2>
+    <details><summary>1. What kind of number is 5, and what kind is 5.0?</summary><p>5 is an int (whole). 5.0 is a float — the decimal point decides, not the value.</p></details>
+    <details><summary>2. Why did Round 3 print 23 instead of 5?</summary><p>input() returns text. "2" + "3" concatenates strings into "23". No conversion meant no math happened.</p></details>
+    <details><summary>3. How do you turn the text "42" into a number? And "4.2"?</summary><p>int("42") for the first, float("4.2") for the second. int("4.2") would crash.</p></details>
+    <details><summary>4. What does print(10 / 2) show, and why?</summary><p>2.0 — division always returns a float in Python 3, even when it divides evenly.</p></details>
+  </section>
+
+  <section>
+    <div class="stop"><strong>🛑 Stop here.</strong> Day 2 = numbers, four operators, conversion. Nothing more. Tomorrow (Day 3) your program learns to make decisions with <code>if / else</code> — and you'll finally use those comparison symbols you're not allowed to touch today.</div>
+  </section>
+
+</div>
+
+<!-- ============ SHELL ============ -->
+<div class="shellcol" id="shell">
+  <div class="shell">
+    <div class="shell-top">
+      <h2>⌨ LIVE PYTHON SHELL</h2>
+      <span class="pill" id="status">loading engine…</span>
+    </div>
+    <div class="tabs">
+      <button class="tab active" id="tabScript">SCRIPT (write &amp; run)</button>
+      <button class="tab" id="tabRepl">REPL (line by line)</button>
+    </div>
+
+    <div class="panel active" id="panelScript">
+      <div class="lbl">your code</div>
+      <textarea id="editor" spellcheck="false">price = 10
+quantity = 3
+total = price * quantity
+print("Total:", total)</textarea>
+      <div class="lbl">input box — answers for input(), one per line</div>
+      <textarea id="stdinBox" spellcheck="false" placeholder="e.g. 50 then 10 on the next line"></textarea>
+      <div class="btnrow">
+        <button class="run" id="runBtn">▶ Run</button>
+        <button class="ghost" id="clearBtn">Clear output</button>
+      </div>
+      <div class="lbl">output</div>
+      <div class="console" id="consoleScript">Python shell ready area. Press Run.</div>
+    </div>
+
+    <div class="panel" id="panelRepl">
+      <div class="lbl">type one line, press Enter — memory persists between lines</div>
+      <div class="console" id="consoleRepl">REPL mode. Try:  x = 7   then:   x / 2   then:   x // 2</div>
+      <div class="replline"><span>&gt;&gt;&gt;</span><input id="replInput" spellcheck="false" autocomplete="off"></div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<button class="jump" onclick="document.getElementById('shell').scrollIntoView({behavior:'smooth'})">⌨ Practice</button>
+
+<footer>Day 2 of 100 — understand one thing, build one thing, move on. Shell runs real Python in your browser (Pyodide); internet needed once to load.</footer>
+
+<script>
+"use strict";
+var SNIPPETS = {
+  ex:  {code:'price = 10\nquantity = 3\ntotal = price * quantity\nprint("Total:", total)', stdin:''},
+  t1:  {code:'print(2 + 3 * 4)\nprint((2 + 3) * 4)', stdin:''},
+  t2:  {code:'print(7 / 2)\nprint(10 / 5)', stdin:''},
+  t3:  {code:'a = input("First number: ")\nb = input("Second number: ")\nprint(a + b)', stdin:'2\n3'},
+  t4:  {code:'a = float(input("First number: "))\nb = float(input("Second number: "))\nprint(a + b)', stdin:'2\n3'},
+  t5:  {code:'print(7 // 2)\nprint(7 % 2)', stdin:''},
+  task:{code:'bill = float(input("Bill amount: "))\ntip_percent = float(input("Tip percent: "))\n\n# 1. calculate the tip:  bill * tip_percent / 100\n# 2. calculate the total: bill + tip\n# 3. print the tip, then print the total\n', stdin:'50\n10'}
+};
+
+var py = null, ready = false;
+var editor = document.getElementById('editor');
+var stdinBox = document.getElementById('stdinBox');
+var cS = document.getElementById('consoleScript');
+var cR = document.getElementById('consoleRepl');
+var statusEl = document.getElementById('status');
+var runBtn = document.getElementById('runBtn');
+
+try{
+  var se = localStorage.getItem('day2_editor'); if(se!==null) editor.value = se;
+  var ss = localStorage.getItem('day2_stdin'); if(ss!==null) stdinBox.value = ss;
+}catch(e){}
+editor.addEventListener('input', function(){ try{localStorage.setItem('day2_editor', editor.value);}catch(e){} });
+stdinBox.addEventListener('input', function(){ try{localStorage.setItem('day2_stdin', stdinBox.value);}catch(e){} });
+
+function out(el, text, cls){
+  var span = document.createElement('span');
+  if(cls) span.className = cls;
+  span.textContent = text;
+  el.appendChild(span);
+  el.appendChild(document.createTextNode('\n'));
+  el.scrollTop = el.scrollHeight;
+}
+function clearC(el){ el.textContent = ''; }
+
+var PRELUDE = [
+'import sys as _sys',
+'class _Q:',
+'    def __init__(self, lines):',
+'        self._l = list(lines)',
+'    def readline(self):',
+'        if self._l:',
+'            line = self._l.pop(0)',
+'            _sys.stdout.write(line + "\\n")',
+'            return line + "\\n"',
+'        return ""',
+'    def read(self, n=-1):',
+'        d = "\\n".join(self._l)',
+'        self._l = []',
+'        return d',
+'def _set_stdin(lines):',
+'    _sys.stdin = _Q(lines)',
+'_set_stdin([])'
+].join('\n');
+
+function loadEngine(){
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js';
+  s.onload = function(){
+    loadPyodide().then(function(p){
+      py = p;
+      py.setStdout({batched:function(t){ out(cS, t.replace(/\n$/,'')); }});
+      py.setStderr({batched:function(t){ out(cS, t.replace(/\n$/,''), 'e'); }});
+      return py.runPythonAsync(PRELUDE);
+    }).then(function(){
+      ready = true;
+      statusEl.textContent = 'python ready ✓';
+      statusEl.className = 'pill ready';
+      clearC(cS);
+      out(cS, 'Python ready. Press Run, or load any snippet from the lesson.', 'h');
+    }).catch(function(e){
+      statusEl.textContent = 'engine error';
+      statusEl.className = 'pill err';
+      out(cS, 'Could not start Python: ' + e.message, 'e');
+    });
+  };
+  s.onerror = function(){
+    statusEl.textContent = 'offline';
+    statusEl.className = 'pill err';
+    out(cS, 'No internet? The Python engine downloads once from a CDN. Connect and reload.', 'e');
+  };
+  document.head.appendChild(s);
+}
+loadEngine();
+
+function tipFor(msg){
+  if(msg.indexOf('EOFError')>-1) return 'hint: your program asked for more input than the INPUT box had. Add one answer per line there.';
+  if(msg.indexOf('TypeError')>-1) return 'hint: usually text mixed with numbers. Convert first: float(...) or int(...), or use a comma in print instead of +.';
+  if(msg.indexOf('ValueError')>-1) return 'hint: conversion failed — int() cannot read text with a decimal point. Try float().';
+  if(msg.indexOf('NameError')>-1) return 'hint: typo in a variable name, or text missing its quotes.';
+  if(msg.indexOf('SyntaxError')>-1) return 'hint: check quotes, parentheses and spelling.';
+  return '';
+}
+runBtn.addEventListener('click', function(){
+  if(!ready){ out(cS,'Engine still loading, give it a few seconds…','h'); return; }
+  clearC(cS);
+  var raw = stdinBox.value.split('\n');
+  while(raw.length && raw[raw.length-1].trim()==='') raw.pop();
+  py.runPythonAsync('_set_stdin(' + JSON.stringify(raw) + ')').then(function(){
+    return py.runPythonAsync(editor.value);
+  }).then(function(){
+    out(cS, '--- finished cleanly ---', 'h');
+  }).catch(function(e){
+    var m = (e && e.message) ? e.message : String(e);
+    var lines = m.split('\n'), last = '';
+    for(var i=lines.length-1;i>=0;i--){ if(lines[i].trim()){ last = lines[i].trim(); break; } }
+    out(cS, last, 'e');
+    var t = tipFor(m);
+    if(t) out(cS, t, 'h');
+  });
+});
+document.getElementById('clearBtn').addEventListener('click', function(){ clearC(cS); });
+
+var replInput = document.getElementById('replInput');
+replInput.addEventListener('keydown', function(ev){
+  if(ev.key !== 'Enter') return;
+  var line = replInput.value; replInput.value = '';
+  if(!line.trim()) return;
+  if(!ready){ out(cR,'Engine still loading…','h'); return; }
+  out(cR, '>>> ' + line);
+  var isExpr = false;
+  try{ py.runPython('compile(' + JSON.stringify(line) + ', "<repl>", "eval")'); isExpr = true; }catch(e){ isExpr = false; }
+  try{
+    if(isExpr){
+      var r = py.runPython('repr(eval(' + JSON.stringify(line) + '))');
+      out(cR, r);
+    }else{
+      py.runPython(line);
+    }
+  }catch(e){
+    var m = (e && e.message) ? e.message : String(e);
+    var ls = m.split('\n'), last='';
+    for(var i=ls.length-1;i>=0;i--){ if(ls[i].trim()){ last = ls[i].trim(); break; } }
+    out(cR, last, 'e');
+    var t = tipFor(m); if(t) out(cR, t, 'h');
+  }
+});
+
+document.getElementById('tabScript').addEventListener('click', function(){
+  this.classList.add('active'); document.getElementById('tabRepl').classList.remove('active');
+  document.getElementById('panelScript').classList.add('active'); document.getElementById('panelRepl').classList.remove('active');
+});
+document.getElementById('tabRepl').addEventListener('click', function(){
+  this.classList.add('active'); document.getElementById('tabScript').classList.remove('active');
+  document.getElementById('panelRepl').classList.add('active'); document.getElementById('panelScript').classList.remove('active');
+  replInput.focus();
+});
+
+var chips = document.querySelectorAll('[data-load]');
+for(var i=0;i<chips.length;i++){
+  chips[i].addEventListener('click', function(){
+    var sn = SNIPPETS[this.getAttribute('data-load')];
+    if(!sn) return;
+    editor.value = sn.code;
+    stdinBox.value = sn.stdin;
+    try{ localStorage.setItem('day2_editor', sn.code); localStorage.setItem('day2_stdin', sn.stdin); }catch(e){}
+    document.getElementById('tabScript').click();
+    document.getElementById('shell').scrollIntoView({behavior:'smooth', block:'start'});
+    runBtn.focus();
+  });
+}
+</script>
+</body>
+</html>
